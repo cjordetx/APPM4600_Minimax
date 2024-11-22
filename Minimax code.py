@@ -8,67 +8,74 @@ from numpy.polynomial import Chebyshev
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from scipy import optimize
+import numdifftools as nd
 
 def driver():
 
-    N = 7
+    N = 15
     a = -1
     b = 1
-    E = 0
+    E = 1
     h = (a - b) / 2
-    Neval = 100
+    Nmax = 100
     tol = 10 ** (-8)
     xeval = np.linspace(a,b,N+1)
 
     f = lambda x: np.sin(x)
     fp = lambda x: np.cos(x)
 
-    
     ''' Create interpolation nodes'''
-    xint = np.linspace(a,b,N+2)
-#    print('xint =',xint)
-    '''Create interpolation data'''
-    yint = f(xint)
-#    print('yint =',yint)
-    
-    ''' Create the Vandermonde matrix'''
-    V = Vandermonde(xint,N)
-    #print('V = ',V)
+    xint = np.array([np.cos(2*i - 1)*np.pi/2 for i in range(N+2)])
 
-    'find coeffients and error'
-    coeffs, error1 = coefficients(yint, V)
-    #print('coeffs, error = ', coeffs, error1)
+    while E < 1.05 * E:
+        '''Create interpolation data'''
+        yint = f(xint)
+#       print('yint =',yint)
 
-    dcoeffs = np.zeros(len(coeffs))
-    for i in range(len(coeffs)):
-        dcoeffs[i] = coeffs[i] * i
+        ''' Create the Vandermonde matrix'''
+        V = Vandermonde(xint,N)
+        #print('V = ',V)
 
-    dcoeffs = dcoeffs[1:]
-    errorfunc = lambda x: f(x) - numpy.polynomial.polynomial.polyval(x, coeffs)
-    derrorfunc = lambda x: fp(x) - numpy.polynomial.polynomial.polyval(x, dcoeffs)
+        'find coeffients and error'
+        coeffs, E = coefficients(yint, V)
+        #print('coeffs, error = ', coeffs, error1)
+
+        dcoeffs = np.zeros(len(coeffs))
+        for i in range(len(coeffs)):
+            dcoeffs[i] = coeffs[i] * i
+
+        dcoeffs = dcoeffs[1:]
+        errorfunc = lambda x: f(x) - numpy.polynomial.polynomial.polyval(x, coeffs)
+        derrorfunc = lambda x: fp(x) - numpy.polynomial.polynomial.polyval(x, dcoeffs)
+
+        roots, ier, its = Newton(derrorfunc, xint, tol, Nmax)
+        print('Newton:', roots)
 
 
-    #roots = optimize.root_scalar(derrorfunc, bracket = [xeval[], xeval[]], x0 = 0)
-    #print('roots = ', roots)
-    'evaluate minimax polynomial using coeffs'
-    yeval = eval_monomial(xeval, coeffs, N, N)
-    #print('yeval:', yeval)
+        #roots = optimize.root_scalar(derrorfunc, bracket = [xeval[], xeval[]], x0 = 0)
+        #print('roots = ', roots)
+        'evaluate minimax polynomial using coeffs'
+        yeval = eval_monomial(xeval, coeffs, N, N)
+        #print('yeval:', yeval)
 
 
 
 # exact function
-    yex = f(xeval)
-    err = (yex - yeval)
-    maxerr =  max(np.abs(yex-yeval))
-    #print('err = ', err)
-    print('maxerr = ', maxerr)
-    plt.plot(xeval, yex, label = 'exact')
-    plt.plot(xeval, yeval, label = 'approximation')
-    plt.legend()
-    plt.show()
-    plt.plot(xeval, errorfunc(xeval), label = 'error')
-    plt.legend()
-    plt.show()
+        yex = f(xeval)
+        err = (yex - yeval)
+        maxerr =  max(np.abs(yex-yeval))
+        print('err = ', errorfunc(xint))
+        print('maxerr = ', maxerr)
+        plt.plot(xeval, yex, label = 'exact')
+        plt.plot(xeval, yeval, label = 'approximation')
+        plt.legend()
+        plt.show()
+        plt.plot(xint, errorfunc(xint), label = 'error')
+        plt.legend()
+        plt.show()
+
+        xint = roots
+
 
 
 
@@ -132,36 +139,27 @@ def error_eval(xeval, f, fp, coeffs, N, Neval):
 #print('roots=', roots)
 
 
-def newton(f, fp, p0, tol, Nmax):
-    """
-    Newton iteration.
+def Newton(f, x0, tol, Nmax):
+    ''' inputs: x0 = initial guess, tol = tolerance, Nmax = max its'''
+    ''' Outputs: xstar= approx root, ier = error message, its = num its'''
 
-    Inputs:
-      f,fp - function and derivative
-      p0   - initial guess for root
-      tol  - iteration stops when p_n,p_{n+1} are within tol
-      Nmax - max number of iterations
-    Returns:
-      p     - an array of the iterates
-      pstar - the last iterate
-      info  - success message
-            - 0 if we met tol
-            - 1 if we hit Nmax iterations (fail)
+    for its in range(Nmax):
+        J = nd.Jacobian(f)(x0)
+        Jinv = inv(J)
+        F = f(x0)
 
-    """
-    p = np.zeros(Nmax + 1);
-    p[0] = p0
-    for it in range(Nmax):
-        p1 = p0 - f(p0) / fp(p0)
-        p[it + 1] = p1
-        if (abs(p1 - p0) < tol):
-            pstar = p1
-            info = 0
-            return [p, pstar, info, it]
-        p0 = p1
-    pstar = p1
-    info = 1
-    return [p, pstar, info, it]
+        x1 = x0 - Jinv.dot(F)
+
+        if (norm(x1 - x0) < tol):
+            xstar = x1
+            ier = 0
+            return [xstar, ier, its]
+
+        x0 = x1
+
+    xstar = x1
+    ier = 1
+    return [xstar, ier, its]
 
 
 def newtonroots(x0, f, fp, coeffs, N, Nmax, tol):
