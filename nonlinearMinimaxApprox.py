@@ -99,7 +99,7 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
 
     X0 = np.concatenate(([rho_0],int_coeff,Xstar_0))
 
-    (_,qstar_coeff,info,it) = newtonND(Feval,J_F,X0, 1e-8, 20)
+    (_,qstar_coeff,info,it) = newtonND(Feval,J_F,X0, 1e-14, 20)
 
     return (qstar_coeff, info)
       
