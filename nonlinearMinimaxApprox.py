@@ -77,13 +77,14 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
 
         J_F = np.zeros((2*N+2,2*N+2))
         J_F[:N+2,0] = -(-1)**np.arange(0,N+2)
-        J_F[:N+2,1:N+2] = -np.vander(np.concatenate([a],p,[b]),N+1, increasing=True)
+        J_F[:N+2,1:N+2] = -np.vander(np.concatenate(([a],Xstar,[b])),N+1, increasing=True)
         J_F[0,N+2:] = np.zeros(N)
         J_F[1:N+1,N+2:] = np.diag(fp(Xstar))
         J_F[N+1,N+2:] = np.zeros(N)
         J_F[N+2:,0:2] = np.zeros((N,2))
         J_F[N+2:,2:N+2] = -np.vander(Xstar,N,increasing=True)@np.diag(np.arange(1,N+1))
         J_F[N+2:,N+2:] = np.diag(fpp(Xstar)-qstarpp(Xstar))
+        return J_F
 
 
     # Using Newton's method to solve for minimax approx polynomial coefficients

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from nonlinearMinimaxApprox import nonlinearMinimax
 
 # Function and interval
 f = np.exp
@@ -32,4 +33,19 @@ plt.plot(xeval, Eeval) # f(x)
 plt.xlabel(r'$x$')
 plt.ylabel(r'$E_1(x)$')
 # plt.savefig("C:/Users/crazy/OneDrive - UCB-O365/Classes/2024 Fall/APPM 4600/Project/deg1ApproxError.png",dpi=300)
-plt.show()
+# plt.show()
+
+
+# Testing nonlinear minimax approx code
+N = 1
+# Coefficients for 1 order monomial
+int_coeff = np.array([1, 1])
+
+fp = f
+fpp = f
+
+qstar_coeff, info = nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N)
+
+print(np.array([a0, a1]))
+print(info)
+print(qstar_coeff[1:N+2])
