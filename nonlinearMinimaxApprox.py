@@ -45,7 +45,8 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
                     - (coefficients in order of increasing polynomial term)
     N           - approximation order
     Returns:
-    qstar_coeff - vector of polynomial coefficients for final minimax approximation
+    qstar_coeff - vector containing maximum error, polynomial coefficients for final minimax 
+                  approximation, and locations where error maxima occur
                     - (coefficients in order of increasing polynomial term)
     info        - success message
                     - 0 if we met tol
@@ -73,10 +74,12 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
     def J_F(X):
         p = X[N+1:0:-1]
         Xstar = X[N+2:]
+        # print(Xstar,X.shape)
         qstarpp = lambda x: np.polyval(np.arange(N,1,-1)*np.arange(N-1,0,-1)*p[:-2],x)
 
         J_F = np.zeros((2*N+2,2*N+2))
         J_F[:N+2,0] = -(-1)**np.arange(0,N+2)
+        # print(-np.vander(np.concatenate(([a],Xstar,[b])),N+1, increasing=True))
         J_F[:N+2,1:N+2] = -np.vander(np.concatenate(([a],Xstar,[b])),N+1, increasing=True)
         J_F[0,N+2:] = np.zeros(N)
         J_F[1:N+1,N+2:] = np.diag(fp(Xstar))
@@ -84,6 +87,8 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
         J_F[N+2:,0:2] = np.zeros((N,2))
         J_F[N+2:,2:N+2] = -np.vander(Xstar,N,increasing=True)@np.diag(np.arange(1,N+1))
         J_F[N+2:,N+2:] = np.diag(fpp(Xstar)-qstarpp(Xstar))
+        # print(X)
+        # print(J_F)
         return J_F
 
 
