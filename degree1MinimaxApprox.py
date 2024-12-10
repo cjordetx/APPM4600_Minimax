@@ -1,6 +1,8 @@
 import numpy as np
+import mpmath as mp
 import matplotlib.pyplot as plt
 from nonlinearMinimaxApprox import nonlinearMinimax
+from remez_poly import remez
 
 # Function and interval
 f = np.exp
@@ -41,24 +43,39 @@ plt.close()
 N = 2
 # Coefficients for 1 order monomial
 int_coeff = np.ones(N+1)
+# int_coeff = np.array([1.00009000287256, 0.9973092607333836, 0.49883509185510316, 0.17734527451461188, 0.04415554008758067])
 
 fp = f
 fpp = f
 
 qstar_coeff, info = nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N)
+if info == 1:
+    print('Max Number of iterations')
 
-print(np.array([a0, a1]))
-# print(info)
+# print(np.array([a0, a1]))
 print(qstar_coeff[1:N+2])
+f = mp.exp
+rem_coeff, _ = remez(f,N,a,b)
+print(rem_coeff)
 
 qNeval = np.polyval(qstar_coeff[N+1:0:-1], xeval)
-q2Correct = 0.9952 + 1.1361*xeval + 0.5479*xeval**2
+remNeval = np.polyval(rem_coeff[::-1], xeval)
 
 plt.figure()
 plt.plot(xeval, feval, label=r'$e^x$') # f(x)
-plt.plot(xeval, qNeval, label=r'$q_{}^\star(x)$'.format(N)) # q1(x)
-plt.plot(xeval, q2Correct, label=r'$q_2^\star(x)$ correct') # q1(x)
+plt.plot(xeval, qNeval, label=r'$q_{}^\star(x)$'.format(N)) 
+plt.plot(xeval, remNeval, label=r'$q_{}^\star(x)$ Remez'.format(N)) 
 plt.xlabel(r'$x$')
 plt.ylabel(r'$y$')
+plt.title(r'$f(x)$ vs Minimax Approximation')
+plt.legend()
+plt.show()
+
+plt.figure()
+plt.plot(xeval, feval-qNeval, label=r'$E_{}(x)$'.format(N)) # q1(x)
+plt.plot(xeval, feval-remNeval, label=r'$E_{}^(x)$ Remez'.format(N)) # q1(x)
+plt.xlabel(r'$x$')
+plt.ylabel(r'$E_1(x)$')
+plt.title('Minimax Error')
 plt.legend()
 plt.show()
