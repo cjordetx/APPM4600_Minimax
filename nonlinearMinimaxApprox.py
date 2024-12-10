@@ -109,8 +109,8 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
     rho_0 = np.max(np.abs(f(xtest)-qstar(xtest)))
 
     # Initial guess of points where maximum error occurs
-    Xstar_0 = np.linspace(a,b,N+2)[1:-1] 
-    # Xstar_0 = (a+b)/2 + (b-a)/2 * np.cos((2*np.arange(N)+1)*np.pi/(2*N)) # Chebychev nodes
+    # Xstar_0 = np.linspace(a,b,N+2)[1:-1] 
+    Xstar_0 = (a+b)/2 + (b-a)/2 * np.cos((2*np.arange(N)+1)*np.pi/(2*N)) # Chebychev nodes
 
     X0 = np.concatenate(([rho_0],int_coeff,Xstar_0))
 

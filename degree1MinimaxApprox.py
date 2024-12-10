@@ -1,8 +1,10 @@
 import numpy as np
 import mpmath as mp
 import matplotlib.pyplot as plt
+import numpy.polynomial.chebyshev as ch
 from nonlinearMinimaxApprox import nonlinearMinimax
 from remez_poly import remez
+from chebyshevApprox import chebshevApprox
 
 # Function and interval
 f = np.exp
@@ -40,10 +42,11 @@ plt.ylabel(r'$E_1(x)$')
 plt.close()
 
 # Testing nonlinear minimax approx code
-N = 2
-# Coefficients for 1 order monomial
-int_coeff = np.ones(N+1)
-# int_coeff = np.array([1.00009000287256, 0.9973092607333836, 0.49883509185510316, 0.17734527451461188, 0.04415554008758067])
+N = 5
+# Coefficients for initial minimax guess
+# int_coeff = np.ones(N+1) # monomial
+int_coeff = ch.cheb2poly(chebshevApprox(f,a,b,N))
+print(int_coeff)
 
 fp = f
 fpp = f
