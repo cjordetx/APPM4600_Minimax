@@ -1,4 +1,6 @@
 import numpy as np
+import scipy.optimize as op
+from degree2expanalyticaltest import F_exp, J_exp
 
 def newtonND(F,J_F,X0, tol, Nmax):
   """
@@ -21,6 +23,11 @@ def newtonND(F,J_F,X0, tol, Nmax):
   X = []
   X.append(X0)
   for it in range(Nmax):
+      # print('\n',J_F(X0))
+      # print(J_exp(X0,-1,1))
+      # print(np.abs(J_F(X0)-J_exp(X0,-1,1)))
+      # print(X0)
+      # print(np.linalg.cond(J_F(X0)),'\n')
       Y0 = np.linalg.solve(J_F(X0), -F(X0))
       X1 = X0 + Y0
       X.append(X1)
@@ -45,7 +52,7 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
                     - (coefficients in order of increasing polynomial term)
     N           - approximation order
     Returns:
-    qstar_coeff - vector containing maximum error, polynomial coefficients for final minimax 
+    XP          - vector containing maximum error, polynomial coefficients for final minimax 
                   approximation, and locations where error maxima occur
                     - (coefficients in order of increasing polynomial term)
     info        - success message
@@ -91,6 +98,7 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
 
         J_F = np.zeros((2*N+2,2*N+2))
         J_F[:N+2,0] = -(-1)**np.arange(0,N+2)
+        # print(X.shape,Xstar.shape,np.concatenate(([a],Xstar,[b])).shape,np.vander(np.concatenate(([a],Xstar,[b])),N+1, increasing=True).shape)
         J_F[:N+2,1:N+2] = -np.vander(np.concatenate(([a],Xstar,[b])),N+1, increasing=True)
         J_F[0,N+2:] = np.zeros(N)
         J_F[1:N+1,N+2:] = np.diag(fp(Xstar)-qstarp(Xstar))
@@ -109,23 +117,35 @@ def nonlinearMinimax(f, fp, fpp, a, b, int_coeff, N):
     rho_0 = np.max(np.abs(f(xtest)-qstar(xtest)))
 
     # Initial guess of points where maximum error occurs
-    # Xstar_0 = np.linspace(a,b,N+2)[1:-1] 
-    Xstar_0 = (a+b)/2 + (b-a)/2 * np.cos((2*np.arange(N)+1)*np.pi/(2*N)) # Chebychev nodes
+    # Xstar_0 = np.linspace(a,b,N+2)[1:-1] # Equispaced Nodes
+    Xstar_0 = (a+b)/2 + (b-a)/2 * np.cos((2*np.arange(N-1,-1,-1)+1)*np.pi/(2*N)) # Chebychev nodes
+    # print(np.concatenate(([a],Xstar_0,[b])), f(np.concatenate(([a],Xstar_0,[b]))))
 
     X0 = np.concatenate(([rho_0],int_coeff,Xstar_0))
 
-    (_,qstar_coeff,info,it) = newtonND(Feval,J_F,X0, 1e-14, 100)
+    # print(X0)
+    # J_num = J_F(X0)
+    # J_an = J_exp(X0,-1,1)
+    # print('\n', J_num)
+    # print(J_an)
+    # print(np.abs(J_num-J_an),'\n')
+    # print(np.array([J_num[2,5], J_num[4,4]]))
+    # print(np.array([J_an[2,5], J_an[4,4]]))
+    # print(int_coeff.shape)
 
-    return (qstar_coeff, info)
+    # F_test = lambda X: F_exp(X,a,b)
+
+    (_,XP,info,it) = newtonND(Feval,J_F,X0, 1e-10, 100)
+    print('Number of iterations: ', it)
+
+    # info = 0
+    # result = op.root(Feval, X0)
+    # # print(result)
+    # XP = result.x
+
+    return (XP, info)
       
 
 
-# N = 10
-# print(np.arange(N,1,-1))
-# print(np.arange(N-1,0,-1))
-
-# x = np.arange(1,10)
-# print(x)
-# print(np.concat(([0],x,[10])))
       
    
