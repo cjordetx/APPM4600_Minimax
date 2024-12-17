@@ -89,6 +89,7 @@ def remez(f,a,b,deg):
 
 
     xint = sorted(chebyshev_points(a,b,deg+2))
+    print("Vect : ", xint)
     
     xplot = np.linspace(a,b,1000)
     numits =0
@@ -111,9 +112,6 @@ def remez(f,a,b,deg):
         #build the polynomial g(x)
         g=lambda x: np.polyval(pUseME[::-1],x)
 
-        plt.plot(xplot,f(xplot))
-        plt.plot(xplot,g(xplot))
-        plt.show()
         E = lambda x: f(x) - g(x)
 
 
@@ -142,7 +140,7 @@ def remez(f,a,b,deg):
         if err == 0:
             xpeaks[-1] = b
         plt.plot(xplot,abs(E(xplot)))
-        plt.title("Error abs")
+        plt.title('Absolute Error of Iteration '+ str(numits))
         plt.show()
         #Uses the equiosiclation and that it is required to be true due to the matrix that we are using. 
         for j in range(deg):
@@ -157,19 +155,16 @@ def remez(f,a,b,deg):
         minpeak = min(abs(E(xpeaks)))
         maxpeak = max(abs(E(xpeaks)))
         xint=xpeaks
-        plt.figure()
-        plt.plot(xplot,E(xplot))
-        plt.legend(["Error plot of degree: ", deg])
-        print("Max Error: ", maxpeak)
-        print("Min Err: ", minpeak)
-        if maxpeak<=1.05*minpeak:
+        
+        if maxpeak<=1.000005*minpeak:
             maxerr = maxpeak
             CheckState = True
         numits = numits+1
+    plt.figure()
+    plt.plot(xplot,E(xplot))
+    plt.title("Error plot of degree: "+ str(deg))
+    print("Max Error: ", maxpeak)
+    print("Min Err: ", minpeak)
     plt.show()
 
     maxerr = maxpeak
-
-
-    #p is the polynomial coeffecents, maxerr is the value of the absolute max err found through remez
-    return pUseME,maxerr,CheckState
